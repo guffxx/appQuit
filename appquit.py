@@ -4,6 +4,13 @@ import platform
 import time
 import os
 
+def check_python_version():
+    if sys.version_info < (3, 0):
+        print("Python 3.0 or higher is required")
+        sys.exit(1)
+
+check_python_version()
+
 def get_platform():
     system = platform.system().lower()
     if system not in ['darwin', 'linux', 'windows']:
@@ -15,15 +22,17 @@ def install_dependencies(system):
     def pip_install(package):
         try:
             # Try installing with --user flag first
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', package])
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', package],
+                               timeout=60)  # Add timeout
             print(f"Successfully installed {package}")
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             try:
                 # If that fails, try without --user flag
-                subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+                subprocess.check_call([sys.executable, '-m', 'pip', 'install', package],
+                                   timeout=60)  # Add timeout
                 print(f"Successfully installed {package}")
-            except subprocess.CalledProcessError:
-                print(f"Error installing {package}.")
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+                print(f"Error installing {package}: {str(e)}")
                 print(f"Try running manually: pip3 install --user {package}")
                 sys.exit(1)
 
@@ -70,6 +79,16 @@ OPTIONAL_KEEP_APPS = {
     'linux': ["gnome-terminal", "konsole", "xterm", "top"],
     'windows': ["cmd.exe", "powershell.exe", "taskmgr.exe"]
 }
+
+def check_privileges():
+    try:
+        if platform.system().lower() == 'windows':
+            import ctypes
+            return ctypes.windll.shell32.IsUserAnAdmin() != 0
+        else:
+            return os.geteuid() == 0
+    except:
+        return False
 
 class AppQuitter:
     def __init__(self):
@@ -128,6 +147,11 @@ class AppQuitter:
                     app.kill()
                 else:
                     app.terminate()
+                    try:
+                        app.wait(timeout=3)  # Wait up to 3 seconds for the process to terminate
+                    except self.psutil.TimeoutExpired:
+                        if force_quit:
+                            app.kill()  # Force kill if graceful termination times out
             return True
         except Exception as e:
             print(f"Error quitting app: {e}")
@@ -175,7 +199,18 @@ class AppQuitter:
             print(f"• {app_name}{status}")
         print()
 
+    def cleanup(self):
+        """Cleanup resources before exit"""
+        if hasattr(self, 'workspace'):
+            del self.workspace
+
 def main():
+    # Check for required privileges
+    if not check_privileges():
+        print("Warning: Running without administrative privileges.")
+        print("Some applications may not quit properly.")
+        print("Try running with sudo/admin privileges for better results.")
+        
     try:
         quitter = AppQuitter()
         
@@ -222,6 +257,13 @@ def main():
     print()
     print("Done! All specified applications have been quit.")
     print("Tip: Use 'graceful quit' to let apps save their work first!")
+    
+    if 'quitter' in locals():
+        quitter.cleanup()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+        sys.exit(0)
