@@ -207,13 +207,15 @@ class AppQuitter:
 def main():
     # Check for required privileges
     if not check_privileges():
+        print("******************************************")
         print("Warning: Running without administrative privileges.")
         print("Some applications may not quit properly.")
         print("Try running with sudo/admin privileges for better results.")
+        print("******************************************")
         
     try:
         quitter = AppQuitter()
-        
+        print()
         print(f"Python App Quitter ({platform.system()})")
         print("==========================================")
         print()
