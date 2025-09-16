@@ -226,6 +226,7 @@ def main():
         print("3. Graceful quit (keep Terminal/Activity Monitor)")
         print("4. Force quit (keep Terminal/Activity Monitor)")
         print("5. List apps only")
+        print("Tip: Use 'graceful quit' to let apps save their work first!")
 
         try:
             choice = int(input().strip())
@@ -242,7 +243,7 @@ def main():
                 print("⚡ Force quitting apps (keeping optional apps)...")
                 quitter.quit_all_apps(force_quit=True, keep_optional=True)
             elif choice == 5:
-                print("App list displayed above.")
+                quitter.list_running_apps()
             else:
                 print("Invalid choice. Using default (graceful quit with optional keeps)...")
                 quitter.quit_all_apps(force_quit=False, keep_optional=True)
@@ -255,8 +256,8 @@ def main():
         sys.exit(1)
 
     print()
-    print("Done! All specified applications have been quit.")
-    print("Tip: Use 'graceful quit' to let apps save their work first!")
+    print("All done!")
+    
     
     if 'quitter' in locals():
         quitter.cleanup()
