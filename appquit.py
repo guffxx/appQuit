@@ -187,7 +187,7 @@ class AppQuitter:
         protected = PROTECTED_APPS[self.system]
         optional = OPTIONAL_KEEP_APPS[self.system]
 
-        print("📱 Currently Running Applications:")
+        print("Currently Running Applications:")
         print("=================================")
 
         for _, app_name in running_apps:
@@ -214,7 +214,7 @@ def main():
     try:
         quitter = AppQuitter()
         
-        print(f"🚪 Python App Quitter ({platform.system()})")
+        print(f"Python App Quitter ({platform.system()})")
         print("==========================================")
         print()
 
@@ -225,7 +225,6 @@ def main():
         print("2. Force quit (immediate, no saving)")
         print("3. Graceful quit (keep Terminal/Activity Monitor)")
         print("4. Force quit (keep Terminal/Activity Monitor)")
-        print("5. List apps only")
         print("Tip: Use 'graceful quit' to let apps save their work first!")
 
         try:
@@ -234,22 +233,18 @@ def main():
                 print("🔄 Gracefully quitting all applications...")
                 quitter.quit_all_apps(force_quit=False, keep_optional=False)
             elif choice == 2:
-                print("⚡ Force quitting all applications...")
+                print("🔄 Force quitting all applications...")
                 quitter.quit_all_apps(force_quit=True, keep_optional=False)
             elif choice == 3:
                 print("🔄 Gracefully quitting apps (keeping optional apps)...")
                 quitter.quit_all_apps(force_quit=False, keep_optional=True)
             elif choice == 4:
-                print("⚡ Force quitting apps (keeping optional apps)...")
+                print("🔄 Force quitting apps (keeping optional apps)...")
                 quitter.quit_all_apps(force_quit=True, keep_optional=True)
-            elif choice == 5:
-                quitter.list_running_apps()
             else:
-                print("Invalid choice. Using default (graceful quit with optional keeps)...")
-                quitter.quit_all_apps(force_quit=False, keep_optional=True)
+                print("Invalid choice. Try again.")
         except ValueError:
-            print("No input provided. Using default method...")
-            quitter.quit_all_apps(force_quit=False, keep_optional=True)
+            print("No input provided. Try again.")
 
     except Exception as e:
         print(f"An error occurred: {e}")
