@@ -18,7 +18,7 @@ let optionalKeepApps = [
     "Console"
 ]
 
-func quitAllAppsWithWorkspace(forceQuit: Bool = false, keepOptional: Bool = true) {
+func quitAllAppsWithWorkspace(forceQuit: Bool = false, keepOptional: Bool = true, recheckDelay: UInt32 = 5_000_000) {
     let workspace = NSWorkspace.shared
     let runningApps = workspace.runningApplications
 
@@ -56,8 +56,20 @@ func quitAllAppsWithWorkspace(forceQuit: Bool = false, keepOptional: Bool = true
             app.terminate()
         }
 
-        // .1 seconds
-        usleep(100000) 
+        usleep(100000)
+    }
+
+    // Recheck pass — catches launchers that respawn after their game quits
+    usleep(recheckDelay)
+
+    let stillRunning = appsToQuit.filter { !$0.isTerminated }
+    if !stillRunning.isEmpty {
+        print()
+        print("Still running after \(recheckDelay / 1_000_000)s, force quitting: \(stillRunning.map { $0.localizedName ?? "Unknown" }.joined(separator: ", "))")
+        for app in stillRunning {
+            app.forceTerminate()
+            usleep(100000)
+        }
     }
 }
 
